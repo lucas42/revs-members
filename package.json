@@ -1,0 +1,27 @@
+{
+  "name": "revs-members",
+  "version": "0.0.0",
+  "description": "The members only section of the London Revolution Cheer website",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/lucas42/revs-members.git"
+  },
+  "keywords": [
+    "London",
+    "Revolution",
+    "Cheer",
+    "Cheerleading",
+    "Members"
+  ],
+  "author": "Luke Blaney",
+  "license": "BSD",
+  "readmeFilename": "README.md",
+  "gitHead": "f95d5abe5e619acdc4cfab9722f5c33c296e656e",
+  "bugs": {
+    "url": "https://github.com/lucas42/revs-members/issues"
+  }
+}
