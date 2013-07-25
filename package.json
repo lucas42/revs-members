@@ -1,6 +1,6 @@
 {
   "name": "revs-members",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "The members only section of the London Revolution Cheer website",
   "main": "index.js",
   "scripts": {
@@ -23,5 +23,13 @@
   "gitHead": "f95d5abe5e619acdc4cfab9722f5c33c296e656e",
   "bugs": {
     "url": "https://github.com/lucas42/revs-members/issues"
+  },
+  "dependencies" : {
+    "express": "~3.0",
+    "facebook-node-sdk": "~0.2",
+    "mustache": "~0.7",
+    "mustache-express": "~0.2",
+    "async": "*"
   }
+
 }
