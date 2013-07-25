@@ -1,6 +1,8 @@
 var express = require('express');
 var Facebook = require('facebook-node-sdk');
 var async   = require('async');
+var mustache = require('mustache');
+var fs = require('fs');
 
 
 var app = express();
@@ -17,7 +19,7 @@ var mustacheExpress = require('mustache-express');
 // Register '.ms' extension with The Mustache Express
 app.engine('ms', mustacheExpress());
 
-app.set('view engine', 'mustache');
+app.set('view engine', 'ms');
 app.set('views', __dirname + '/views');
 
 app.use(express.static(__dirname + '/public'));
@@ -80,8 +82,22 @@ app.get('/', function (req, res) {
 	res.redirect("/faq");
 });
 app.get('/faq', function (req, res) {
-	res.render("faq.ms", {user: req.user, groupid: process.env.MEMBERS_GROUP_ID});
+	renderPage("faq", req, res, {title: "Frequently Asked Questions"});
 });
+function renderPage(pagename, req, res, params) {
+	if (!params) params = {}
+	params.user = req.user;
+	params.groupid = process.env.MEMBERS_GROUP_ID;
+	fs.readFile(__dirname+"/views/"+pagename+".ms", {encoding: 'utf8'}, function (err, data) {
+    	if (err) {
+			res.writeHead(503, {'Content-Type': 'text/plain'});
+			res.end('Sorry, an error occurred: '+err);
+    		return;
+    	}
+		params.content = mustache.render(data, params);
+		res.render("page.ms", params);
+	});	
+}
 
 // listen to the PORT given to us in the environment
 var port = process.env.PORT || 3000;
