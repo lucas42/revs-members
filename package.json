@@ -29,7 +29,8 @@
     "facebook-node-sdk": "~0.2",
     "mustache": "~0.7",
     "mustache-express": "~0.2",
-    "async": "*"
+    "async": "*",
+    "clone": ">= 0.1"
   }
 
 }

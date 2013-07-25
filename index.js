@@ -3,6 +3,7 @@ var Facebook = require('facebook-node-sdk');
 var async   = require('async');
 var mustache = require('mustache');
 var fs = require('fs');
+var clone = require('clone');
 
 
 var app = express();
@@ -81,13 +82,31 @@ app.all('*', Facebook.loginRequired({ scope: ['user_groups']}), function(req, re
 app.get('/', function (req, res) {
 	res.redirect("/faq");
 });
+
+var navitems = [
+	{
+		url: "/",
+		title: "Home"
+	},
+	{
+		url: "/faq",
+		title: "Frequently Asked Questions"
+	}
+];
 app.get('/faq', function (req, res) {
 	renderPage("faq", req, res, {title: "Frequently Asked Questions"});
 });
 function renderPage(pagename, req, res, params) {
+	var i;
 	if (!params) params = {}
 	params.user = req.user;
 	params.groupid = process.env.MEMBERS_GROUP_ID;
+	params.navitems = clone(navitems);
+	for (i in params.navitems) {
+		if (params.navitems[i].url == "/"+pagename) {
+			params.navitems[i].current = true;
+		}
+	}
 	fs.readFile(__dirname+"/views/"+pagename+".ms", {encoding: 'utf8'}, function (err, data) {
     	if (err) {
 			res.writeHead(503, {'Content-Type': 'text/plain'});

@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="style.css" type="text/css" />
 </head>
 <body>
+	{{>nav}}
 	<div class='container'>
 	<h1 class='title'>{{title}}</h1>
 {{{content}}}

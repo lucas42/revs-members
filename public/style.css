@@ -2,3 +2,7 @@
 .title { font-weight: 800; font-size: 36px; margin: 15px 0;}
 a { color: #3ea9c9; }
 body { color: #4c4c54; }
+nav { float: left; width: 20%; background: #000; position: fixed; top: 0; bottom: 0; padding-top: 26px; overflow: hidden; }
+.container { margin-left: 20%; padding: 10px; width: auto!important; }
+nav a { color: #fff; display: block; padding: 5px 10px; font-weight: bold; }
+nav a.current, nav a:hover, nav a:active { color: #f3e92b; }
