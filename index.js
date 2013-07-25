@@ -20,6 +20,7 @@ app.engine('ms', mustacheExpress());
 app.set('view engine', 'mustache');
 app.set('views', __dirname + '/views');
 
+app.use(express.static(__dirname + '/public'));
 
 app.all('*', Facebook.loginRequired({ scope: ['user_groups']}), function(req, res, next){
 
