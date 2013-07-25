@@ -24,30 +24,44 @@ app.set('views', __dirname + '/views');
 app.all('*', Facebook.loginRequired({ scope: ['user_groups']}), function(req, res, next){
 
 
-	var user, ismember = false, isadmin = false;
+	var user, ismember = false, isadmin = false, error = null;
     async.parallel([
       function(cb) {
  		 req.facebook.api('/me', function(err, thisuser) {
-          user = thisuser;
-          cb();
+ 		 	if (err) {
+ 		 		error = err;
+ 		 	} else {
+         		user = thisuser;
+         	}
+      	    cb();
         });
       },
       function(cb) {
  		 req.facebook.api('/me/groups', function(err, groups) {
  		 	var i, group;
-          for (i in groups.data) {
-          	group = groups.data[i];
-          	if (group.id == process.env.MEMBERS_GROUP_ID) {
-          		ismember = true;
-          	}
-          	if (group.id == process.env.ADMIN_GROUP_ID) {
-          		isadmin = true;
-          	}
-          }
-          cb();
+ 		 	if (err) {
+ 		 		error = err;
+ 		 		cb();
+ 		 		return;
+ 		 	}
+			for (i in groups.data) {
+				group = groups.data[i];
+				if (group.id == process.env.MEMBERS_GROUP_ID) {
+					ismember = true;
+				}
+				if (group.id == process.env.ADMIN_GROUP_ID) {
+					isadmin = true;
+				}
+			}
+			cb();
         });
       }
     ], function() {
+    	if (error) {
+			res.writeHead(503, {'Content-Type': 'text/plain'});
+			res.end('Sorry, an error occurred: '+error);
+    		return;
+    	}
     	user.ismember = ismember;
     	user.isadmin = isadmin;
     	if (!user.ismember) {
