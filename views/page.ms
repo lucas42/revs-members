@@ -9,7 +9,10 @@
     <link rel="stylesheet" href="style.css" type="text/css" />
 </head>
 <body>
+	<div id='navbar'>
+		<a href="/"><img src='/logo.png' id='logo' /></a>
 	{{>nav}}
+	</div>
 	<div class='container'>
 	<h1 class='title'>{{title}}</h1>
 {{{content}}}
