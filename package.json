@@ -30,7 +30,8 @@
     "mustache": "~0.7",
     "mustache-express": "~0.2",
     "async": "*",
-    "clone": ">= 0.1"
+    "clone": ">= 0.1",
+    "request": "~2.25.0"
   }
 
 }
