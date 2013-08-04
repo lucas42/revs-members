@@ -100,11 +100,9 @@ request.post({
 		pages[body.rows[i].key] = body.rows[i].value;
 	}
 });
-app.get('/faq', function (req, res) {
-	renderPage("/faq", req, res);
-});
-function renderPage(url, req, res) {
+app.get('*', function (req, res) {
 	var params, i, current;
+	var url = require('url').parse(req.url).pathname;
 
 	// Get the data about the given page
 	if (pages[url]) {
@@ -112,7 +110,7 @@ function renderPage(url, req, res) {
 
 	// If the page doesn't exist, return make it a 404
 	} else {
-		//res.writeHead(404, {'Content-Type': 'text/plain'});
+		res.status(404);
 		params = {
 			'title': "Page not found",
 			'body': "Sorry, the page you were looking for cannot be found",
@@ -136,7 +134,7 @@ function renderPage(url, req, res) {
 	// Render the page
 	params.content = mustache.render(params.body, params);
 	res.render("page.ms", params);
-}
+});
 
 // listen to the PORT given to us in the environment
 var port = process.env.PORT || 3000;
