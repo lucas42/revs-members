@@ -5,7 +5,6 @@ var mustache = require('mustache');
 var fs = require('fs');
 var clone = require('clone');
 
-
 var app = express();
 
 app.configure(function () {
@@ -83,39 +82,60 @@ app.get('/', function (req, res) {
 	res.redirect("/faq");
 });
 
-var navitems = [
-	{
-		url: "/",
-		title: "Home"
-	},
-	{
-		url: "/faq",
-		title: "Frequently Asked Questions"
+var pages = {}
+var request = require("request");
+request.post({
+	headers: {"Content-Type": "application/json"},
+	url: process.env.COUCHDB_URL+"/_temp_view",
+	body: JSON.stringify({"map": 'function (doc) { if (doc.type=="page") { emit(doc.url, doc); }}'})
+}, function (err, res) {
+	if (err) {
+		console.log(err);
+		return;
 	}
-];
-app.get('/faq', function (req, res) {
-	renderPage("faq", req, res, {title: "Frequently Asked Questions"});
+	var body = JSON.parse(res.body);
+	var i,l;
+	pages = {};
+	for(i=0, l=body.rows.length; i<l; i++) {
+		pages[body.rows[i].key] = body.rows[i].value;
+	}
 });
-function renderPage(pagename, req, res, params) {
-	var i;
-	if (!params) params = {}
+app.get('/faq', function (req, res) {
+	renderPage("/faq", req, res);
+});
+function renderPage(url, req, res) {
+	var params, i, current;
+
+	// Get the data about the given page
+	if (pages[url]) {
+		params = pages[url];
+
+	// If the page doesn't exist, return make it a 404
+	} else {
+		//res.writeHead(404, {'Content-Type': 'text/plain'});
+		params = {
+			'title': "Page not found",
+			'body': "Sorry, the page you were looking for cannot be found",
+		};
+	}
+
+	// Go through all the pages and add their details for the navigation
+	params.navitems = [];
+	for (i in pages) {
+		params.navitems.push({
+			url: i,
+			title: pages[i].title,
+			current: (url == i),
+		});
+	}
+
+	// Add some extra details which can be used by templates
 	params.user = req.user;
 	params.groupid = process.env.MEMBERS_GROUP_ID;
-	params.navitems = clone(navitems);
-	for (i in params.navitems) {
-		if (params.navitems[i].url == "/"+pagename) {
-			params.navitems[i].current = true;
-		}
-	}
-	fs.readFile(__dirname+"/views/"+pagename+".ms", {encoding: 'utf8'}, function (err, data) {
-    	if (err) {
-			res.writeHead(503, {'Content-Type': 'text/plain'});
-			res.end('Sorry, an error occurred: '+err);
-    		return;
-    	}
-		params.content = mustache.render(data, params);
-		res.render("page.ms", params);
-	});	
+
+	// Render the page
+	params.content = mustache.render(params.body, params);
+	res.render("page.ms", params);
 }
 
 // listen to the PORT given to us in the environment
