@@ -89,25 +89,37 @@ app.get('/', function (req, res) {
 	res.redirect("/faq");
 });
 
-var pages = {}
+var pages = {};
+
+function couchrequest (path, data, cb) {
 var request = require("request");
-request.post({
-	headers: {"Content-Type": "application/json"},
-	url: process.env.COUCHDB_URL+"/_temp_view",
-	body: JSON.stringify({"map": 'function (doc) { if (doc.type=="page") { emit(doc.url, doc); }}'})
-}, function (err, res) {
-	var body, i, l;
-	try {
-		if (err) throw err;
-		if (res.statusCode != 200) throw res.statusCode + " response";
-		body = JSON.parse(res.body);
-	} catch (e) {
-		console.log("Problem with couchdb response", e);
+	request.post({
+		headers: {"Content-Type": "application/json"},
+		url: process.env.COUCHDB_URL+"/"+path,
+		body: JSON.stringify(data)
+	}, function (err, res) {
+		var body, i, l;
+		if (typeof cb != 'function') return;
+		try {
+			if (err) throw err;
+			if (res.statusCode != 200) throw res.statusCode + " response";
+			body = JSON.parse(res.body);
+		} catch (e) {
+			cb("Problem with couchdb response:" + e);
+			return;
+		}
+		cb(null, body);
+	});
+}
+couchrequest ('_temp_view', {"map": 'function (doc) { if (doc.type=="page") { emit(doc.url, doc); }}'}, function (err, data) {
+	var i, l;
+	if (err) {
+		console.log(err);
 		return;
 	}
 	pages = {};
-	for(i=0, l=body.rows.length; i<l; i++) {
-		pages[body.rows[i].key] = body.rows[i].value;
+	for(i=0, l=data.rows.length; i<l; i++) {
+		pages[data.rows[i].key] = data.rows[i].value;
 	}
 });
 app.get('*', function (req, res) {
