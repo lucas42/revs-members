@@ -10,3 +10,5 @@ body { color: #4c4c54; }
 .button { background: black; border-radius: 0.8em; color: #f3e92b; cursor: pointer; }
 #edit { float: right; padding-left: 10px; }
 #edit .button { font-size: 17px; padding: 7px; }
+label { display: block; }
+textarea { width: 90%; height: 10em; }
