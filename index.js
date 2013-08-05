@@ -79,7 +79,11 @@ app.all('*', Facebook.loginRequired({ scope: ['user_groups']}), function(req, re
 
 app.get('/edit/*', function (req, res) {
 
-			res.end('Sorry, editing is not yet available');
+	var params = {
+		'title': "Edit Page",
+		'body': "Sorry, editing is not yet available",
+	};
+	renderPage(req, res, params);
 })
 app.get('/', function (req, res) {
 	res.redirect("/faq");
@@ -107,14 +111,14 @@ request.post({
 	}
 });
 app.get('*', function (req, res) {
-	var params, i, current;
+	var params;
 	var url = require('url').parse(req.url).pathname;
 
 	// Get the data about the given page
 	if (pages[url]) {
 		params = pages[url];
 
-	// If the page doesn't exist, return make it a 404
+	// If the page doesn't exist, return a 404
 	} else {
 		res.status(404);
 		params = {
@@ -122,6 +126,13 @@ app.get('*', function (req, res) {
 			'body': "Sorry, the page you were looking for cannot be found",
 		};
 	}
+	renderPage(req, res, params);
+});
+
+function renderPage(req, res, params) {
+	var i, current;
+	var url = require('url').parse(req.url).pathname;
+
 
 	// Go through all the pages and add their details for the navigation
 	params.navitems = [];
@@ -141,7 +152,7 @@ app.get('*', function (req, res) {
 	// Render the page
 	params.content = mustache.render(params.body, params);
 	res.render("page.ms", params);
-});
+}
 
 // listen to the PORT given to us in the environment
 var port = process.env.PORT || 3000;
