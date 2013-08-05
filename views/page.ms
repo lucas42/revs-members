@@ -14,6 +14,7 @@
 	{{>nav}}
 	</div>
 	<div class='container'>
+	{{#id}}<form action="/edit/{{id}}" method="get" id="edit"><input type="submit" value="Edit" class='button' /></form>{{/id}}
 	<h1 class='title'>{{title}}</h1>
 {{{content}}}
 </div>

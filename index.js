@@ -77,7 +77,10 @@ app.all('*', Facebook.loginRequired({ scope: ['user_groups']}), function(req, re
     });
 });
 
+app.get('/edit/*', function (req, res) {
 
+			res.end('Sorry, editing is not yet available');
+})
 app.get('/', function (req, res) {
 	res.redirect("/faq");
 });
@@ -89,12 +92,15 @@ request.post({
 	url: process.env.COUCHDB_URL+"/_temp_view",
 	body: JSON.stringify({"map": 'function (doc) { if (doc.type=="page") { emit(doc.url, doc); }}'})
 }, function (err, res) {
-	if (err) {
-		console.log(err);
+	var body, i, l;
+	try {
+		if (err) throw err;
+		if (res.statusCode != 200) throw res.statusCode + " response";
+		body = JSON.parse(res.body);
+	} catch (e) {
+		console.log("Problem with couchdb response", e);
 		return;
 	}
-	var body = JSON.parse(res.body);
-	var i,l;
 	pages = {};
 	for(i=0, l=body.rows.length; i<l; i++) {
 		pages[body.rows[i].key] = body.rows[i].value;
@@ -130,6 +136,7 @@ app.get('*', function (req, res) {
 	// Add some extra details which can be used by templates
 	params.user = req.user;
 	params.groupid = process.env.MEMBERS_GROUP_ID;
+	if (params['_id']) params.id = params['_id'];
 
 	// Render the page
 	params.content = mustache.render(params.body, params);

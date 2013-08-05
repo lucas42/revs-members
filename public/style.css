@@ -7,3 +7,6 @@ body { color: #4c4c54; }
 #navbar a { color: #fff; display: block; padding: 5px 10px; font-weight: bold; }
 #navbar a.current, #navbar a:hover, #navbar a:active { color: #f3e92b; }
 #logo { max-width: 87%; display: block; margin: auto; max-height: 4em; }
+.button { background: black; border-radius: 0.8em; color: #f3e92b; cursor: pointer; }
+#edit { float: right; padding-left: 10px; }
+#edit .button { font-size: 17px; padding: 7px; }
