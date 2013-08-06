@@ -93,7 +93,7 @@ function adminRequired(req, res, next) {
 app.all('/edit/*', adminRequired);
 app.all('/new/*', adminRequired);
 
-var editpageform = "<strong>This page is currently experimental.</strong><form method='post' action='{{#data._id}}/edit/{{data._id}}{{/data._id}}{{^data._id}}/new/{{data.type}}{{/data._id}}'>{{#data._rev}}<input type='hidden' name='_rev' value='{{data._rev}}' />{{/data._rev}}<label>Page URL: <input type='text' value='{{data.url}}' name='url'/> (must start with a /)</label>Page Title: <input type='text' value='{{data.title}}' name='title' /></label><label>Content: <textarea name='body'>{{data.body}}</textarea></label><input type='submit' value='{{#data._id}}Save{{/data._id}}{{^data._id}}New{{/data._id}}' class='button' /></form>";
+var editpageform = "<form method='post' action='{{#data._id}}/edit/{{data._id}}{{/data._id}}{{^data._id}}/new/{{data.type}}{{/data._id}}'>{{#data._rev}}<input type='hidden' name='_rev' value='{{data._rev}}' />{{/data._rev}}<label>Page URL: <input type='text' value='{{data.url}}' name='url'/></label>Page Title: <input type='text' value='{{data.title}}' name='title' /></label><label>Content: <textarea name='body'>{{data.body}}</textarea></label><input type='submit' value='{{#data._id}}Save{{/data._id}}{{^data._id}}New{{/data._id}}' class='button' /></form>";
 
 app.get('/new/page', function (req, res) {
 	var params = {
@@ -133,40 +133,23 @@ app.get('/edit/:id', function (req, res) {
 	});
 });
 
-app.post('/new/page', function (req, res) {
+app.post('/new/page', savePage);
+app.post('/edit/:id', savePage);
 
+function savePage(req, res) {
+	var method, path;
 	var newdata = req.body;
+	if (req.params.id) {
+		method = 'put';
+		path = req.params.id;
+	} else {
+		method = 'post';
+		path = '/';
+	}
 
 	// TODO: allow other types
 	newdata.type = 'page';
-	couchpost('', newdata, function (err, data) {
-		if (err) {
-			res.writeHead(500, {'Content-Type': 'text/plain'});
-			res.end('Sorry, an error occurred: '+err);
-    		return;
-		}
-		if (!data.ok) {
-			res.writeHead(500, {'Content-Type': 'text/plain'});
-			res.end('Sorry, an error occurred: '+data.error+", reason: "+data.reason);
-    		return;
-		}
-
-		// Redirect back to the edit page with a 303 so it'll turn into a GET request.
-		res.redirect('/edit/'+data.id, 303);
-
-		// Asynchronously update pages
-		updatePages();
-	});
-});
-app.post('/edit/:id', function (req, res) {
-
-	var id = req.params.id
-	var newdata = req.body;
-	var url = '/edit/'+id;
-
-	// TODO: allow other types
-	newdata.type = 'page';
-	couchput(id, newdata, function (err, data) {
+	couchdo(method, path, newdata, function (err, data) {
 		if (err) {
 			res.writeHead(500, {'Content-Type': 'text/plain'});
 			res.end('Sorry, an error occurred: '+err);
@@ -189,63 +172,37 @@ app.post('/edit/:id', function (req, res) {
 		}
 
 		// Redirect back to the edit page with a 303 so it'll turn into a GET request.
-		res.redirect(url, 303);
+		res.redirect('/edit/'+data.id, 303);
 
 		// Asynchronously update pages
 		updatePages();
 	});
-});
+
+}
 app.get('/', function (req, res) {
 	res.redirect("/faq");
 });
 
 var pages = {};
 
-function couchpost (path, data, cb) {
-var request = require("request");
-	request.post({
-		headers: {"Content-Type": "application/json"},
-		url: process.env.COUCHDB_URL+"/"+path,
-		body: JSON.stringify(data)
-	}, function (err, res) {
-		var body, i, l;
-		if (typeof cb != 'function') return;
-		try {
-			if (err) throw err;
-			if (res.statusCode >= 500) throw res.statusCode + " response";
-			body = JSON.parse(res.body);
-		} catch (e) {
-			cb("Problem with couchdb response:" + e);
-			return;
-		}
-		cb(null, body);
-	});
-}
-function couchput (path, data, cb) {
-var request = require("request");
-	request.put({
-		headers: {"Content-Type": "application/json"},
-		url: process.env.COUCHDB_URL+"/"+path,
-		body: JSON.stringify(data)
-	}, function (err, res) {
-		var body, i, l;
-		if (typeof cb != 'function') return;
-		try {
-			if (err) throw err;
-			if (res.statusCode >= 500) throw res.statusCode + " response";
-			body = JSON.parse(res.body);
-		} catch (e) {
-			cb("Problem with couchdb response:" + e);
-			return;
-		}
-		cb(null, body);
-	});
-}
 function couchget (path, cb) {
-var request = require("request");
-	request.get({
-		url: process.env.COUCHDB_URL+"/"+path
-	}, function (err, res) {
+	couchdo('get', path, null, cb);
+}
+function couchdo(method, path, data, cb) {
+	var request = require("request");
+	var params = {};
+	if (!path || !path.length) {
+		params.url = process.env.COUCHDB_URL;
+	} else if (path[0] == '/') {
+		params.url = process.env.COUCHDB_URL+path;
+	} else  {
+		params.url = process.env.COUCHDB_URL+"/"+path;
+	}
+	if (data) {
+		params.headers = {"Content-Type": "application/json"};
+		params.body = JSON.stringify(data)
+	}
+	request[method](params, function (err, res) {
 		var body, i, l;
 		if (typeof cb != 'function') return;
 		try {
@@ -260,15 +217,22 @@ var request = require("request");
 	});
 }
 function updatePages() {
-	couchpost ('_temp_view', {"map": 'function (doc) { if (doc.type=="page") { emit(doc.url, doc); }}'}, function (err, data) {
-		var i, l;
+	couchdo ('post', '/_temp_view', {"map": 'function (doc) { if (doc.type=="page") { emit(doc.url, doc); }}'}, function (err, data) {
+		var i, l, path;
 		if (err) {
 			console.log(err);
 			return;
 		}
 		pages = {};
 		for(i=0, l=data.rows.length; i<l; i++) {
-			pages[data.rows[i].key] = data.rows[i].value;
+			path = data.rows[i].key;
+
+			// Ignore any pages without a path
+			if (!path.length) continue;
+
+			// Ensure every path begins with a slash
+			if (path[0] != '/') path = '/'+path; 
+			pages[path] = data.rows[i].value;
 		}
 	});
 }
