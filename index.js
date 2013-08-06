@@ -104,9 +104,9 @@ app.get('/new/page', function (req, res) {
 	renderPage(req, res, params);
 });
 
-app.get('/edit/*', function (req, res) {
+app.get('/edit/:id', function (req, res) {
 
-	var id = require('url').parse(req.url).pathname.split('/')[2];
+	var id = req.params.id;
 	couchget(id, function (err, data) {
 		var params = {
 			title: "Edit "+data.type,
@@ -158,9 +158,9 @@ app.post('/new/page', function (req, res) {
 		updatePages();
 	});
 });
-app.post('/edit/*', function (req, res) {
+app.post('/edit/:id', function (req, res) {
 
-	var id = require('url').parse(req.url).pathname.split('/')[2];
+	var id = req.params.id
 	var newdata = req.body;
 	var url = '/edit/'+id;
 
