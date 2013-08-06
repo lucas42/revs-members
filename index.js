@@ -78,6 +78,11 @@ app.all('*', Facebook.loginRequired({ scope: ['user_groups']}), function(req, re
 });
 
 app.get('/edit/*', function (req, res) {
+	if (!req.user.isadmin){
+		res.writeHead(403, {'Content-Type': 'text/plain'});
+		res.end('Only admins may edit pages');
+		return;
+	}
 
 	var id = require('url').parse(req.url).pathname.split('/')[2];
 	couchget(id, function (err, data) {
@@ -107,8 +112,12 @@ app.get('/edit/*', function (req, res) {
 });
 
 app.post('/edit/*', function (req, res) {
+	if (!req.user.isadmin){
+		res.writeHead(403, {'Content-Type': 'text/plain'});
+		res.end('Only admins may edit pages');
+		return;
+	}
 
-	// TODO: verify it's an admin user
 	var id = require('url').parse(req.url).pathname.split('/')[2];
 	var newdata = req.body;
 	var url = '/edit/'+id;
