@@ -93,11 +93,13 @@ function adminRequired(req, res, next) {
 app.all('/edit/*', adminRequired);
 app.all('/new/*', adminRequired);
 
+var editpageform = "<strong>This page is currently experimental.</strong><form method='post' action='{{#data._id}}/edit/{{data._id}}{{/data._id}}{{^data._id}}/new/{{data.type}}{{/data._id}}'>{{#data._rev}}<input type='hidden' name='_rev' value='{{data._rev}}' />{{/data._rev}}<label>Page URL: <input type='text' value='{{data.url}}' name='url'/> (must start with a /)</label>Page Title: <input type='text' value='{{data.title}}' name='title' /></label><label>Content: <textarea name='body'>{{data.body}}</textarea></label><input type='submit' value='{{#data._id}}Save{{/data._id}}{{^data._id}}New{{/data._id}}' class='button' /></form>";
+
 app.get('/new/page', function (req, res) {
 	var params = {
 		title: 'New Page',
 	}
-	params.body = "<strong>This page is currently experimental.</strong><form method='post' action='{{#data._id}}/edit/{{data._id}}{{/data._id}}{{^data._id}}/new/{{data.type}}{{/data._id}}'>{{#data._rev}}<input type='hidden' name='_rev' value='{{data._rev}}' />{{/data._rev}}<label>Page URL: <input type='text' value='{{data.url}}' name='url'/> (must start with a /)</label>Page Title: <input type='text' value='{{data.title}}' name='title' /></label><label>Content: <textarea name='body'>{{data.body}}</textarea></label><input type='submit' value='{{#data._id}}Save{{/data._id}}{{^data._id}}New{{/data._id}}' class='button' /></form>";
+	params.body = editpageform;
 	params.data = {type: 'page'};
 	renderPage(req, res, params);
 });
@@ -122,7 +124,7 @@ app.get('/edit/*', function (req, res) {
 				params.body = "Sorry, the request from the database failed: "+data.error+", Reason:"+data.reason;
 			}
 		} else if (data.type == "page") {
-			params.body = "<strong>This page is currently experimental.</strong><form method='post' action='{{#data._id}}/edit/{{data._id}}{{/data._id}}{{^data._id}}/new/{{data.type}}{{/data._id}}'>{{#data._rev}}<input type='hidden' name='_rev' value='{{data._rev}}' />{{/data._rev}}<label>Page URL: <input type='text' value='{{data.url}}' name='url'/> (must start with a /)</label>Page Title: <input type='text' value='{{data.title}}' name='title' /></label><label>Content: <textarea name='body'>{{data.body}}</textarea></label><input type='submit' value='{{#data._id}}Save{{/data._id}}{{^data._id}}New{{/data._id}}' class='button' /></form>";
+			params.body = editpageform;
 			params.data = data;
 		} else {
 			params.body = "It's not currently possible to edit a {{data.type}}";
