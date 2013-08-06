@@ -77,12 +77,23 @@ app.all('*', Facebook.loginRequired({ scope: ['user_groups']}), function(req, re
     });
 });
 
-app.get('/new/page', function (req, res) {
-	if (!req.user.isadmin){
-		res.writeHead(403, {'Content-Type': 'text/plain'});
-		res.end('Only admins may add new pages');
-		return;
+
+function adminRequired(req, res, next) {
+	if (req.user.isadmin) {
+		next();
+	} else {
+		res.status(403);
+		params = {
+			'title': "Forbidden",
+			'body': "Sorry, only committee members are allowed to edit the site.  To avoid this error in future, consider running to be on the committee next year.",
+		};
+		renderPage(req, res, params);
 	}
+}
+app.all('/edit/*', adminRequired);
+app.all('/new/*', adminRequired);
+
+app.get('/new/page', function (req, res) {
 	var params = {
 		title: 'New Page',
 	}
@@ -92,11 +103,6 @@ app.get('/new/page', function (req, res) {
 });
 
 app.get('/edit/*', function (req, res) {
-	if (!req.user.isadmin){
-		res.writeHead(403, {'Content-Type': 'text/plain'});
-		res.end('Only admins may edit pages');
-		return;
-	}
 
 	var id = require('url').parse(req.url).pathname.split('/')[2];
 	couchget(id, function (err, data) {
@@ -116,7 +122,7 @@ app.get('/edit/*', function (req, res) {
 				params.body = "Sorry, the request from the database failed: "+data.error+", Reason:"+data.reason;
 			}
 		} else if (data.type == "page") {
-			params.body = "<strong>This page is currently experimental.</strong><form method='post' action='{{#data._id}}/edit/{{data._id}}{{/data._id}}{{^data._id}}/new/{{data.type}}{{/data._id}}'>{{#data._rev}}<input type='hidden' name='_rev' value='{{/data._rev}}' /><label>Page URL: <input type='text' value='{{data.url}}' name='url'/> (must start with a /)</label>Page Title: <input type='text' value='{{data.title}}' name='title' /></label><label>Content: <textarea name='body'>{{data.body}}</textarea></label><input type='submit' value='{{#data._id}}Save{{/data._id}}{{^data._id}}New{{/data._id}}' class='button' /></form>";
+			params.body = "<strong>This page is currently experimental.</strong><form method='post' action='{{#data._id}}/edit/{{data._id}}{{/data._id}}{{^data._id}}/new/{{data.type}}{{/data._id}}'>{{#data._rev}}<input type='hidden' name='_rev' value='{{data._rev}}' />{{/data._rev}}<label>Page URL: <input type='text' value='{{data.url}}' name='url'/> (must start with a /)</label>Page Title: <input type='text' value='{{data.title}}' name='title' /></label><label>Content: <textarea name='body'>{{data.body}}</textarea></label><input type='submit' value='{{#data._id}}Save{{/data._id}}{{^data._id}}New{{/data._id}}' class='button' /></form>";
 			params.data = data;
 		} else {
 			params.body = "It's not currently possible to edit a {{data.type}}";
@@ -126,11 +132,6 @@ app.get('/edit/*', function (req, res) {
 });
 
 app.post('/new/page', function (req, res) {
-	if (!req.user.isadmin){
-		res.writeHead(403, {'Content-Type': 'text/plain'});
-		res.end('Only admins may add pages');
-		return;
-	}
 
 	var newdata = req.body;
 
@@ -156,11 +157,6 @@ app.post('/new/page', function (req, res) {
 	});
 });
 app.post('/edit/*', function (req, res) {
-	if (!req.user.isadmin){
-		res.writeHead(403, {'Content-Type': 'text/plain'});
-		res.end('Only admins may edit pages');
-		return;
-	}
 
 	var id = require('url').parse(req.url).pathname.split('/')[2];
 	var newdata = req.body;
