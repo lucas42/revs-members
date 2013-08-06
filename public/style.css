@@ -6,6 +6,7 @@ body { color: #4c4c54; }
 .container { margin-left: 20%; padding: 0 17px; width: auto!important; }
 #navbar a { color: #fff; display: block; padding: 5px 10px; font-weight: bold; }
 #navbar a.current, #navbar a:hover, #navbar a:active { color: #f3e92b; }
+#navbar a.isadmin { font-size: smaller; font-style: italic; }
 #logo { max-width: 87%; display: block; margin: auto; max-height: 4em; }
 .button { background: black; border-radius: 0.8em; color: #f3e92b; cursor: pointer; }
 #edit { float: right; padding-left: 10px; }

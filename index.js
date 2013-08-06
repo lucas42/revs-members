@@ -184,6 +184,11 @@ app.get('/', function (req, res) {
 });
 
 var pages = {};
+var adminpages = {
+	'/new/page': {
+		title: "Add New Page",
+	}
+}
 
 function couchget (path, cb) {
 	couchdo('get', path, null, cb);
@@ -271,6 +276,16 @@ function renderPage(req, res, params) {
 			current: (url == i),
 		});
 	}
+	if (req.user.isadmin) {
+		for (i in adminpages) {
+			params.navitems.push({
+				url: i,
+				title: adminpages[i].title,
+				current: (url == i),
+				isadmin: true,
+			});
+		}
+	}	
 
 	// Add some extra details which can be used by templates
 	params.user = req.user;

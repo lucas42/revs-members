@@ -1,5 +1,5 @@
 <nav>
 {{#navitems}}
-	<a href="{{url}}" {{#current}}class="current"{{/current}}>{{title}}</a>
+	<a href="{{url}}" class="navlink{{#current}} current{{/current}}{{#isadmin}} isadmin{{/isadmin}}">{{title}}</a>
 {{/navitems}}
 </nav>
