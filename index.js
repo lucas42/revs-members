@@ -94,7 +94,8 @@ function adminRequired(req, res, next) {
 app.all('/edit/*', adminRequired);
 app.all('/new/*', adminRequired);
 
-var editpageform = "<form method='post' action='{{#data._id}}/edit/{{data._id}}{{/data._id}}{{^data._id}}/new/{{data.type}}{{/data._id}}'>{{#data._rev}}<input type='hidden' name='_rev' value='{{data._rev}}' />{{/data._rev}}<label>Page URL: <input type='text' value='{{data.url}}' name='url'/></label><label>Page Title: <input type='text' value='{{data.title}}' name='title' /></label><label>Content: <textarea name='body'>{{data.body}}</textarea></label><input type='submit' value='{{#data._id}}Save{{/data._id}}{{^data._id}}New{{/data._id}}' class='button' /></form>";
+var editpageform = "<form method='post' action='{{#data._id}}/edit/{{data._id}}{{/data._id}}{{^data._id}}/new/{{data.type}}{{/data._id}}'><input type='hidden' name='type' value='{{data.type}}' />{{#data._rev}}<input type='hidden' name='_rev' value='{{data._rev}}' />{{/data._rev}}<label>Page URL: <input type='text' value='{{data.url}}' name='url'/></label><label>Page Title: <input type='text' value='{{data.title}}' name='title' /></label><label>Content: <textarea name='body'>{{data.body}}</textarea></label><input type='submit' value='{{#data._id}}Save{{/data._id}}{{^data._id}}New{{/data._id}}' class='button' /></form>";
+var editeventform = "<form method='post' action='{{#data._id}}/edit/{{data._id}}{{/data._id}}{{^data._id}}/new/{{data.type}}{{/data._id}}'><input type='hidden' name='type' value='{{data.type}}' />{{#data._rev}}<input type='hidden' name='_rev' value='{{data._rev}}' />{{/data._rev}}<label>Event Title: <input type='text' value='{{data.title}}' name='title' /></label><label>Type of Event: <select name='eventtype'><option>Training</option></select></label><label>Start: <input type='text' value='{{data.start}}' name='start'/></label><label>End: <input type='text' value='{{data.end}}' name='end'/></label><label>Description: <textarea name='body'>{{data.body}}</textarea></label><input type='submit' value='{{#data._id}}Save{{/data._id}}{{^data._id}}New{{/data._id}}' class='button' /></form>";
 
 app.get('/new/page', function (req, res) {
 	var params = {
@@ -102,6 +103,14 @@ app.get('/new/page', function (req, res) {
 	}
 	params.body = editpageform;
 	params.data = {type: 'page'};
+	renderPage(req, res, params);
+});
+app.get('/new/event', function (req, res) {
+	var params = {
+		title: 'New Event',
+	}
+	params.body = editeventform;
+	params.data = {type: 'event'};
 	renderPage(req, res, params);
 });
 
@@ -124,11 +133,18 @@ app.get('/edit/:id', function (req, res) {
 				res.status(503);
 				params.body = "Sorry, the request from the database failed: "+data.error+", Reason:"+data.reason;
 			}
-		} else if (data.type == "page") {
-			params.body = editpageform;
-			params.data = data;
 		} else {
-			params.body = "It's not currently possible to edit a {{data.type}}";
+			params.data = data;
+			switch (data.type) {
+				case "page":
+					params.body = editpageform;
+					break;
+				case "event":
+					params.body = editeventform;
+					break;
+				default:
+					params.body = "It's not currently possible to edit a {{data.type}}";
+			}
 		}
 
 		// Make sure urls start with a slash
@@ -137,10 +153,10 @@ app.get('/edit/:id', function (req, res) {
 	});
 });
 
-app.post('/new/page', savePage);
-app.post('/edit/:id', savePage);
+app.post('/new/:type', saveDoc);
+app.post('/edit/:id', saveDoc);
 
-function savePage(req, res) {
+function saveDoc(req, res) {
 	var method, path;
 	var newdata = req.body;
 	if (req.params.id) {
@@ -151,8 +167,6 @@ function savePage(req, res) {
 		path = '/';
 	}
 
-	// TODO: allow other types
-	newdata.type = 'page';
 	couchdo(method, path, newdata, function (err, data) {
 		if (err) {
 			res.writeHead(500, {'Content-Type': 'text/plain'});
@@ -179,7 +193,7 @@ function savePage(req, res) {
 		res.redirect('/edit/'+data.id, 303);
 
 		// Asynchronously update pages
-		updatePages();
+		if (newdata.type == 'page') updatePages();
 	});
 
 }
@@ -191,6 +205,9 @@ var pages = {};
 var adminpages = {
 	'/new/page': {
 		title: "Add New Page",
+	},
+	'/new/event': {
+		title: "Add New Event",
 	}
 }
 
