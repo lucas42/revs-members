@@ -24,14 +24,14 @@
   "bugs": {
     "url": "https://github.com/lucas42/revs-members/issues"
   },
-  "dependencies" : {
+  "dependencies": {
     "express": "~3.0",
     "facebook-node-sdk": "~0.2",
     "mustache": "~0.7",
     "mustache-express": "~0.2",
     "async": "*",
     "clone": ">= 0.1",
-    "request": "~2.25.0"
+    "request": "~2.25.0",
+    "marked": "~0.2.9"
   }
-
 }

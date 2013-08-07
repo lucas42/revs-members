@@ -4,6 +4,7 @@ var async   = require('async');
 var mustache = require('mustache');
 var fs = require('fs');
 var clone = require('clone');
+var marked = require('marked');
 
 var app = express();
 
@@ -292,8 +293,8 @@ function renderPage(req, res, params) {
 	params.groupid = process.env.MEMBERS_GROUP_ID;
 	if (params['_id']) params.id = params['_id'];
 
-	// Render the page
-	params.content = mustache.render(params.body, params);
+	// Render the page, first by passing converting markdown into html, then passing it through mustache
+	params.content = mustache.render(marked(params.body), params);
 	res.render("page.ms", params);
 }
 
