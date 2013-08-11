@@ -168,6 +168,7 @@ function saveDoc(req, res) {
 	}
 
 	couchdo(method, path, newdata, function (err, data) {
+		var redirecturl;
 		if (err) {
 			res.writeHead(500, {'Content-Type': 'text/plain'});
 			res.end('Sorry, an error occurred: '+err);
@@ -189,8 +190,11 @@ function saveDoc(req, res) {
     		return;
 		}
 
-		// Redirect back to the edit page with a 303 so it'll turn into a GET request.
-		res.redirect('/edit/'+data.id, 303);
+		// If the page has a url, go there after save, otherwise stay on edit page
+		redirecturl = newdata.url ? newdata.url : '/edit/'+data.id;
+
+		// Redirect to the relevant page with a 303 so it'll turn into a GET request.
+		res.redirect(redirecturl, 303);
 
 		// Asynchronously update pages
 		if (newdata.type == 'page') updatePages();
