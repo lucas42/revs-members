@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>FAQs</title>
+	<title>{{title}}</title>
 	<link rel="shortcut icon" href="http://www.revs.org.uk/wp-content/uploads/2013/04/favicon-3.png" />
     <link rel="stylesheet" href="http://www.revs.org.uk/wp-content/themes/Harmony/style.css?ver=3.5.1" type="text/css" />
     <link rel="stylesheet" href="http://www.revs.org.uk/?custom-css=1&amp;csblog=1&amp;cscache=6&amp;csrev=119" type="text/css" />
