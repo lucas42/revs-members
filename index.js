@@ -247,7 +247,7 @@ function couchdo(method, path, data, cb) {
 	});
 }
 function updatePages() {
-	couchdo ('post', '/_temp_view', {"map": 'function (doc) { if (doc.type=="page") { emit(doc.url, doc); }}'}, function (err, data) {
+	couchget('/_design/pages/_view/list', function (err, data) {
 		var i, l, path;
 		if (err) {
 			console.log(err);
