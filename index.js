@@ -248,7 +248,7 @@ function couchdo(method, path, data, cb) {
 }
 function updatePages() {
 	couchget('/_design/pages/_view/list', function (err, data) {
-		var i, l, path;
+		var i, l, path, page;
 		if (err) {
 			console.log(err);
 			return;
@@ -262,7 +262,13 @@ function updatePages() {
 
 			// Ensure every path begins with a slash
 			if (path[0] != '/') path = '/'+path; 
-			pages[path] = data.rows[i].value;
+
+			page = data.rows[i].value;
+
+			// Work out what the root section of the path is.
+			page.pathroot = path.split("/")[1];
+			page.isroot = (path == "/"+page.pathroot || path == "/"+page.pathroot+"/");
+			pages[path] = page;
 		}
 	});
 }
@@ -288,17 +294,19 @@ app.get('*', function (req, res) {
 });
 
 function renderPage(req, res, params) {
-	var i, current;
+	var i;
 	var url = require('url').parse(req.url).pathname;
+	var pathroot = url.split("/")[1];
 
 
-	// Go through all the pages and add their details for the navigation
+	// Go through all the root pages and add their details for the navigation
 	params.navitems = [];
 	for (i in pages) {
+		if (!pages[i].isroot) continue;
 		params.navitems.push({
 			url: i,
 			title: pages[i].title,
-			current: (url == i),
+			current: (pathroot == pages[i].pathroot),
 		});
 	}
 	if (req.user.isadmin) {
